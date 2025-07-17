@@ -1,0 +1,14 @@
+---
+sections:
+  - title: Changelog
+    toctree:
+      - CHANGELOG
+  - title: Scenario Guide
+    toctree:
+      - aws_az_info
+  - title: Module Development Guidelines
+    toctree:
+      - aws_az_info
+  - title: Dynamic Inventory Plugin Guide
+    toctree:
+      - aws_az_info
