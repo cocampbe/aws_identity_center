@@ -105,6 +105,7 @@ changed:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.amazon.aws.plugins.module_utils.core import AnsibleAWSModule
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+from ansible.module_utils.six import string_types
 import json
 
 # In a real implementation, you would put helper functions in module_utils
@@ -120,7 +121,28 @@ def find_permission_set_by_name(client, instance_arn, name):
                 PermissionSetArn=ps_arn
             )
             if details['PermissionSet']['Name'] == name:
-                return ps_arn
+                # Get managed policies
+                managed_policies = []
+                mp_paginator = client.get_paginator('list_managed_policies_in_permission_set')
+                for mp_page in mp_paginator.paginate(InstanceArn=instance_arn, PermissionSetArn=ps_arn):
+                    managed_policies.extend(mp_page.get('AttachedManagedPolicies', []))
+                managed_policy_arns = [mp['Arn'] for mp in managed_policies]
+
+                # Get inline (custom) policy
+                try:
+                    inline_policy_resp = client.get_inline_policy_for_permission_set(
+                        InstanceArn=instance_arn,
+                        PermissionSetArn=ps_arn
+                    )
+                    inline_policy = inline_policy_resp.get('InlinePolicy', None)
+                except client.exceptions.ResourceNotFoundException:
+                    inline_policy = None
+
+                return {
+                    'PermissionSetArn': ps_arn,
+                    'ManagedPolicies': managed_policy_arns,
+                    'InlinePolicy': json.loads(inline_policy) if inline_policy else {}
+                }
     return None
 
 def run_module():
@@ -133,12 +155,18 @@ def run_module():
         relay_state=dict(type='str', required=False),
         managed_policies=dict(type='list', elements='str', required=False, default=[]),
         inline_policy=dict(type='str', required=False),
+        inline_policy_json=dict(type="json", default=None, required=False),
         tags=dict(type='dict', required=False)
     )
+    
+    required_if = [
+        ("state", "present", ("inline_policy_json",), True),
+    ]
 
     # Using AnsibleAWSModule helps with authentication and client creation
     module = AnsibleAWSModule(
         argument_spec=module_args,
+        required_if=required_if, 
         supports_check_mode=True
     )
 
@@ -149,8 +177,10 @@ def run_module():
     instance_arn = module.params['instance_arn']
     
     result = dict(
-        changed=False,
-        permission_set_arn=''
+        changed=module.check_mode,
+        permission_set_arn='',
+        managed_policies=[],
+        inline_policy={}
     )
 
     try:
@@ -176,6 +206,29 @@ def run_module():
                 response = client.create_permission_set(**create_params)
                 ps_arn = response['PermissionSet']['PermissionSetArn']
                 result['changed'] = True
+
+                # Attach customer managed policy reference if provided
+                if module.params.get('managed_policies'):
+                    for policy_arn in module.params['managed_policies']:
+                        client.attach_managed_policy_to_permission_set(
+                            InstanceArn=instance_arn,
+                            PermissionSetArn=ps_arn,
+                            ManagedPolicyArn=policy_arn
+                        )
+                    # set Attach managed policies
+                    result['managed_policies'] = module.params['managed_policies']
+
+                        
+                if module.params.get('inline_policy_json'):
+                    inline_policy = json.dumps(json.loads(module.params['inline_policy_json']))
+                    client.put_inline_policy_to_permission_set(
+                        InstanceArn=instance_arn,
+                        PermissionSetArn=ps_arn,
+                        InlinePolicy=inline_policy
+                    )
+                    # set Inline policy
+                    result['inline_policy'] = json.loads(inline_policy)
+
                 # NOTE: In a real module, you'd add logic here to attach policies and tags
                 # This is a simplified example.
             
