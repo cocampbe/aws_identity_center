@@ -51,7 +51,7 @@ tags:
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: http://example.com/repository
+repository: https://github.com/begoingto/aws_identity_center.git
 
 # The URL to any online docs
 documentation: http://docs.example.com
