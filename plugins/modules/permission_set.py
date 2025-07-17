@@ -8,14 +8,14 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: aws_identity_center_permission_set
+module: permission_set
 short_description: Manage an AWS Identity Center Permission Set.
 description:
     - This module allows for the creation, update, and deletion of Permission Sets in AWS Identity Center.
     - It is idempotent and will only make changes if the desired state differs from the current state.
 version_added: "1.0.0"
 author:
-    - Your Name (@your_github_handle)
+    - Your Name (@begoingto)
 options:
     state:
         description:
@@ -73,7 +73,7 @@ extends_documentation_fragment:
 EXAMPLES = r'''
 # Create or update a permission set with a managed policy
 - name: Ensure PowerUser permission set exists
-  my_org.aws_identity_center.aws_identity_center_permission_set:
+  begoingto.aws_identity_center.permission_set:
     state: present
     instance_arn: "arn:aws:sso:::instance/ssoins-xxxxxxxxxxxxxxxx"
     name: "PowerUser"
@@ -84,7 +84,7 @@ EXAMPLES = r'''
 
 # Delete a permission set
 - name: Ensure OldPermissionSet is removed
-  my_org.aws_identity_center.aws_identity_center_permission_set:
+  begoingto.aws_identity_center.permission_set:
     state: absent
     instance_arn: "arn:aws:sso:::instance/ssoins-xxxxxxxxxxxxxxxx"
     name: "OldPermissionSet"
