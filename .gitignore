@@ -2,4 +2,6 @@ begoingto*.tar.gz
 .idea/
 .vscode/
 /__pycache__/
-*.py[cod]
+*.pyc
+*.pyd
+*.pyo

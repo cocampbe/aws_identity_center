@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # Copyright: (c) 2025, Your Name <your.email@example.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+from ansible_collections.amazon.aws.plugins.module_utils.iam import validate_iam_identifiers
 from ansible_collections.amazon.aws.plugins.module_utils.modules import AnsibleAWSModule
 from botocore.exceptions import ClientError
 
 def run_module(client, module: AnsibleAWSModule, current_count: int = 0):
+
+    identifier_problem = validate_iam_identifiers(
+        "user", name=module.params.get("user_name")
+    )
+
     result = dict(
         changed=False,
         user_id='',
@@ -31,6 +36,7 @@ def run_module(client, module: AnsibleAWSModule, current_count: int = 0):
 
         if state == 'present':
             if existing_users:
+                result['changed'] = False
                 result['user_id'] = existing_users[0]['UserId']
                 result['message'] = f"User {user_name} already exists"
             else:
@@ -40,7 +46,7 @@ def run_module(client, module: AnsibleAWSModule, current_count: int = 0):
                         UserName=user_name,
                         Name={'GivenName': given_name, 'FamilyName': family_name},
                         DisplayName=display_name,
-                        Emails=[{'Value': email, 'Primary': True}]
+                        Emails=[{'Value': email, "Type": "work", 'Primary': True}]
                     )
                     result['user_id'] = response['UserId']
                     result['changed'] = True
