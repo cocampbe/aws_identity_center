@@ -5,10 +5,10 @@ sections:
       - CHANGELOG
   - title: Scenario Guide
     toctree:
-      - aws_az_info
+      - permission_set
   - title: Module Development Guidelines
     toctree:
-      - aws_az_info
+      - permission_set
   - title: Dynamic Inventory Plugin Guide
     toctree:
-      - aws_az_info
+      - permission_set

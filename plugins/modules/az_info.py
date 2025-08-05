@@ -5,7 +5,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 DOCUMENTATION = r"""
-module: aws_az_info
+module: az_info
 short_description: Gather information about availability zones in AWS
 version_added: 1.0.0
 description:
@@ -33,15 +33,15 @@ EXAMPLES = r"""
 # Note: These examples do not set authentication details, see the AWS Guide for details.
 
 - name: Gather information about all availability zones
-  amazon.aws.aws_az_info:
+  amazon.aws.az_info:
 
 - name: Gather information about a single availability zone
-  amazon.aws.aws_az_info:
+  amazon.aws.az_info:
     filters:
       zone-name: eu-west-1a
 
 - name: Gather information in a availability zones based on their state, such as "available"
-  amazon.aws.aws_az_info:
+  amazon.aws.az_info:
     region: us-east-1
     filters:
       state: available

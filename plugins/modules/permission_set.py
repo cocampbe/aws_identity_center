@@ -159,14 +159,14 @@ def run_module():
         tags=dict(type='dict', required=False)
     )
     
-    required_if = [
-        ("state", "present", ("inline_policy_json",), True),
-    ]
+    # required_if = [
+    #     ("state", "present", ("inline_policy_json",), True),
+    # ]
 
     # Using AnsibleAWSModule helps with authentication and client creation
     module = AnsibleAWSModule(
         argument_spec=module_args,
-        required_if=required_if, 
+        # required_if=required_if, 
         supports_check_mode=True
     )
 
