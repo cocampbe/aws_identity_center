@@ -3,13 +3,10 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from ansible_collections.amazon.aws.plugins.module_utils.iam import validate_iam_identifiers
 from ansible_collections.amazon.aws.plugins.module_utils.modules import AnsibleAWSModule
+from ansible_collections.amazon.aws.plugins.module_utils.retries import AWSRetry
 from botocore.exceptions import ClientError
 
 def run_module(client, module: AnsibleAWSModule, current_count: int = 0):
-
-    identifier_problem = validate_iam_identifiers(
-        "user", name=module.params.get("user_name")
-    )
 
     result = dict(
         changed=False,
@@ -91,6 +88,13 @@ def main():
         argument_spec=module_args,
         supports_check_mode=True
     )
+
+    identifier_problem = validate_iam_identifiers(
+        "user", name=module.params.get("user_name")
+    )
+
+    if identifier_problem:
+        module.fail_json(message=identifier_problem)
 
     region = module.params['region']
 
