@@ -12,6 +12,7 @@ def fixture_ansible_begoingto_module():
     module = MagicMock()
     module.params = {
         "identity_store_id": "test-identity-store-id",
+        "user_id": "test-user-id",
         "user_name": "test-user",
         "given_name": "Test",
         "family_name": "User",
@@ -37,29 +38,42 @@ def _assert_defaults(user_obj, to_skip=None):
 
     assert isinstance(user_obj, dict)
 
-    if "UserName" not in to_skip:
-        assert "UserName" in user_obj
-        assert user_obj["UserName"] == "test-user"
-
-    if "GivenName" not in to_skip:
-        assert "GivenName" in user_obj
-        assert user_obj["GivenName"] == "Test"
-
-    if "FamilyName" not in to_skip:
-        assert "FamilyName" in user_obj
-        assert user_obj["FamilyName"] == "User"
-
-    if "DisplayName" not in to_skip:
-        assert "DisplayName" in user_obj
-        assert user_obj["DisplayName"] == "Test User"  # Module sets this to "given_name family_name" if empty
-
-    if "Emails" not in to_skip:
-        assert "Emails" in user_obj
-        assert user_obj["Emails"] == [{"Value": "test.user@example.com", "Primary": True}]
-
-    if "IdentityStoreId" not in to_skip:
-        assert "IdentityStoreId" in user_obj
-        assert user_obj["IdentityStoreId"] == "test-identity-store-id"
+    assert user_obj["IdentityStoreId"] == "test-identity-store-id"
+    assert user_obj["UserName"] == "test-user"
+    assert user_obj["Name"]["Formatted"] == "Test User"
+    assert user_obj["Name"]["FamilyName"] == "User"
+    assert user_obj["Name"]["GivenName"] == "Test"
+    assert user_obj["Name"]["MiddleName"] == "Middle"
+    assert user_obj["Name"]["HonorificPrefix"] == "Mr."
+    assert user_obj["Name"]["HonorificSuffix"] == "Jr."
+    assert user_obj["DisplayName"] == "Test User"
+    assert user_obj["NickName"] == "Tester"
+    assert user_obj["ProfileUrl"] == "https://example.com/profile/test-user"
+    assert user_obj["Emails"] == [{
+        "Value": "test.user@example.com",
+        "Type": "work",
+        "Primary": True
+    }]
+    assert user_obj["Addresses"] == [{
+        "StreetAddress": "123 Main St",
+        "Locality": "Anytown",
+        "Region": "Anystate",
+        "PostalCode": "12345",
+        "Country": "USA",
+        "Formatted": "123 Main St, Anytown, Anystate, 12345, USA",
+        "Type": "work",
+        "Primary": True
+    }]
+    assert user_obj["PhoneNumbers"] == [{
+        "Value": "+1234567890",
+        "Type": "mobile",
+        "Primary": True
+    }]
+    assert user_obj["UserType"] == "employee"
+    assert user_obj["Title"] == "Engineer"
+    assert user_obj["PreferredLanguage"] == "en-US"
+    assert user_obj["Locale"] == "en-US"
+    assert user_obj["Timezone"] == "America/New_York"
 
 
 def test_get_user(ansible_begoingto_module, aws_identity_center_user_module):
@@ -68,12 +82,51 @@ def test_get_user(ansible_begoingto_module, aws_identity_center_user_module):
     client.list_users.return_value = {
         "Users": [
             {
+                "IdentityStoreId": "test-identity-store-id",
                 "UserId": "test-user-id",
                 "UserName": "test-user",
-                "Name": {"GivenName": "Test", "FamilyName": "User"},
+                "Name": {
+                    "Formatted": "Test User",
+                    "FamilyName": "User",
+                    "GivenName": "Test",
+                    "MiddleName": "Middle",
+                    "HonorificPrefix": "Mr.",
+                    "HonorificSuffix": "Jr."
+                },
                 "DisplayName": "Test User",
-                "Emails": [{"Value": "test.user@example.com", "Primary": True}],
-                "IdentityStoreId": "test-identity-store-id"
+                "NickName": "Tester",
+                "ProfileUrl": "https://example.com/profile/test-user",
+                "Emails": [
+                    {
+                        "Value": "test.user@example.com",
+                        "Type": "work",
+                        "Primary": True
+                    }
+                ],
+                "Addresses": [
+                    {
+                        "StreetAddress": "123 Main St",
+                        "Locality": "Anytown",
+                        "Region": "Anystate",
+                        "PostalCode": "12345",
+                        "Country": "USA",
+                        "Formatted": "123 Main St, Anytown, Anystate, 12345, USA",
+                        "Type": "work",
+                        "Primary": True
+                    }
+                ],
+                "PhoneNumbers": [
+                    {
+                        "Value": "+1234567890",
+                        "Type": "mobile",
+                        "Primary": True
+                    }
+                ],
+                "UserType": "employee",
+                "Title": "Engineer",
+                "PreferredLanguage": "en-US",
+                "Locale": "en-US",
+                "Timezone": "America/New_York"
             }
         ]
     }
@@ -82,26 +135,20 @@ def test_get_user(ansible_begoingto_module, aws_identity_center_user_module):
 
     result = ansible_begoingto_module.exit_json.call_args[1]
 
-    print("\n")
-    print(result)
-
     assert result == {
         "changed": False,
         "user_id": "test-user-id",
         "message": "User test-user already exists"
     }
 
-    # client.list_users.assert_called_once_with(
-    #     IdentityStoreId="test-identity-store-id",
-    #     Filters=[{"AttributePath": "UserName", "AttributeValue": "test-user"}]
-    # )
-    # client.create_user.assert_not_called()
-    # client.update_user.assert_not_called()
-    # client.delete_user.assert_not_called()
-    #
-    # # Verify the user specification
-    # user_spec = client.list_users.return_value["Users"][0]
-    # _assert_defaults(user_spec)
+    client.list_users.assert_called_once_with(
+        IdentityStoreId="test-identity-store-id",
+        Filters=[{"AttributePath": "UserName", "AttributeValue": "test-user"}]
+    )
+
+    # Verify the user specification
+    user_spec = client.list_users.return_value["Users"][0]
+    _assert_defaults(user_spec)
 
 def test_create_user(ansible_begoingto_module, aws_identity_center_user_module):
     """Test creating a new user (state=present, user does not exist)."""
@@ -112,9 +159,6 @@ def test_create_user(ansible_begoingto_module, aws_identity_center_user_module):
     aws_identity_center_user_module.run_module(client, ansible_begoingto_module)
 
     result = ansible_begoingto_module.exit_json.call_args[1]
-
-    print("\n")
-    print(result)
 
     assert result == {
         "changed": True,
