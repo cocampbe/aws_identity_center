@@ -222,10 +222,6 @@ def test_update_user(ansible_begoingto_module, aws_identity_center_user_module):
     client.update_user.return_value = {}
     aws_identity_center_user_module.run_module(client, ansible_begoingto_module)
     result = ansible_begoingto_module.exit_json.call_args[1]
-
-    print()
-    print(result)
-
     assert result == {
         "changed": False,
         "user_id": "test-user-id",
