@@ -174,13 +174,9 @@ def test_create_user(ansible_begoingto_module, aws_identity_center_user_module):
     client.list_users.return_value = {"Users": []}
     client.create_user.return_value = {"UserId": "test-user-id"}
 
-    result= aws_identity_center_user_module.create_user(client, ansible_begoingto_module)
+    result= aws_identity_center_user_module.create_or_update_user(client, ansible_begoingto_module)
 
-    assert result == {
-        "changed": True,
-        "user_id": "test-user-id",
-        "message": "User test-user created successfully"
-    }
+    assert result == None
 
     client.create_user.assert_called_once_with(
         IdentityStoreId="test-identity-store-id",
@@ -215,32 +211,27 @@ def test_update_user(ansible_begoingto_module, aws_identity_center_user_module):
         ]
     }
     client.update_user.return_value = {}
-    aws_identity_center_user_module.run_module(client, ansible_begoingto_module)
+    aws_identity_center_user_module.create_or_update_user(client, ansible_begoingto_module)
     result = ansible_begoingto_module.exit_json.call_args[1]
-    assert result == {
-        "changed": False,
-        "user_id": "test-user-id",
-        "message": "User test-user already exists"
-    }
 
-#     client.list_users.assert_called_once_with(
-#         IdentityStoreId="test-identity-store-id",
-#         Filters=[{"AttributePath": "UserName", "AttributeValue": "test-user"}]
-#     )
-#     client.update_user.assert_called_once_with(
-#         IdentityStoreId="test-identity-store-id",
-#         UserId="test-user-id",
-#         Operations=[
-#             {
-#                 "AttributePath": "Name.GivenName",
-#                 "AttributeValue": "UpdatedTest"
-#             },
-#             {
-#                 "AttributePath": "Emails",
-#                 "AttributeValue": [{"Value": "updated.user@example.com", "Primary": True}]
-#             }
-#         ]
-#     )
+    # client.list_users.assert_called_once_with(
+    #     IdentityStoreId="test-identity-store-id",
+    #     Filters=[{"AttributePath": "UserName", "AttributeValue": "test-user"}]
+    # )
+    client.update_user.assert_called_once_with(
+        IdentityStoreId="test-identity-store-id",
+        UserId="test-user-id",
+        Operations=[
+            {
+                "AttributePath": "Name.GivenName",
+                "AttributeValue": "UpdatedTest"
+            },
+            {
+                "AttributePath": "Emails",
+                "AttributeValue": [{"Value": "updated.user@example.com", "Primary": True}]
+            }
+        ]
+    )
 #     client.create_user.assert_not_called()
 #     client.delete_user.assert_not_called()
 #
