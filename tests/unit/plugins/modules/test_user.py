@@ -15,7 +15,7 @@ def fixture_ansible_begoingto_module():
         "user_name": "test-user",
         "given_name": "Test",
         "family_name": "User",
-        "display_name": "",
+        "display_name": "Test User",
         "email": "test.user@example.com",
         "state": "present",
         "region": "us-east-1"
@@ -174,9 +174,7 @@ def test_create_user(ansible_begoingto_module, aws_identity_center_user_module):
     client.list_users.return_value = {"Users": []}
     client.create_user.return_value = {"UserId": "test-user-id"}
 
-    aws_identity_center_user_module.run_module(client, ansible_begoingto_module)
-
-    result = ansible_begoingto_module.exit_json.call_args[1]
+    result= aws_identity_center_user_module.create_user(client, ansible_begoingto_module)
 
     assert result == {
         "changed": True,
@@ -184,10 +182,6 @@ def test_create_user(ansible_begoingto_module, aws_identity_center_user_module):
         "message": "User test-user created successfully"
     }
 
-    client.list_users.assert_called_once_with(
-        IdentityStoreId="test-identity-store-id",
-        Filters=[{"AttributePath": "UserName", "AttributeValue": "test-user"}]
-    )
     client.create_user.assert_called_once_with(
         IdentityStoreId="test-identity-store-id",
         UserName="test-user",
@@ -200,6 +194,7 @@ def test_create_user(ansible_begoingto_module, aws_identity_center_user_module):
     user_spec = client.create_user.call_args[1]
     user_spec["GivenName"] = user_spec["Name"]["GivenName"]
     user_spec["FamilyName"] = user_spec["Name"]["FamilyName"]
+    user_spec["DisplayName"] = "Test User"
     user_spec["Emails"] = [{"Value": email["Value"], "Type": email["Type"], "Primary": True} for email in user_spec["Emails"]]
     _assert_defaults(user_spec)
 
