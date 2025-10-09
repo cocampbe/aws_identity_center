@@ -7,7 +7,7 @@
 DOCUMENTATION = r"""
 ---
 module: idc_group
-version_added_collection: community.aws
+version_added_collection: begoingto.aws
 short_description: Manage AWS Identity Center groups
 description:
   - Manage AWS Identity Center groups.
@@ -46,12 +46,12 @@ EXAMPLES = r"""
 # Note: These examples do not set authentication details, see the AWS Guide for details.
 
 - name: Create a group
-  community.aws.idc_group:
+  begoingto.aws.idc_group:
     name: testgroup1
     state: present
 
 - name: Delete the group
-  community.aws.idc_group:
+  begoingto.aws.idc_group:
     name: testgroup1
     state: absent
 """
@@ -148,3 +148,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
