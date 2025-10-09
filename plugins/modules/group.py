@@ -1,5 +1,7 @@
-#!/usr/bin/env python
-# Copyright: (c) 2025, Your Name <your.email@example.com>
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (c) 2025, Neuy Mich <begoingto.me@gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from ansible_collections.amazon.aws.plugins.module_utils.modules import AnsibleAWSModule
@@ -84,4 +86,5 @@ def main():
     run_module()
 
 if __name__ == '__main__':
+
     main()
