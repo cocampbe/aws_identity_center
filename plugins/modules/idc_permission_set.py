@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright: (c) 2024, Your Name <your.email@example.com>
+# Copyright: (c) 2025, Neuy Mich <begoingto.me@gmail.com>
 # MIT License
 
 from __future__ import (absolute_import, division, print_function)
