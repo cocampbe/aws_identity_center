@@ -9,7 +9,7 @@ The primary purpose of this collection is add modules that can manage items in A
 ## Requirements
 
 - Ansible version >= 2.19.0 (This is the only version I have tested on)
-- AWS SWK (boto3 and botocore). This have been tested on python 3.12
+- AWS SWK (boto3 and botocore). This has been tested with python 3.12
 
 ## Installation
 
