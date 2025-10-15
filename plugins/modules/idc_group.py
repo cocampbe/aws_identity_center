@@ -65,10 +65,13 @@ def create_group(connection, module):
     description = module.params['description']
     identity_store_id = module.params['identity_store_id']
 
-    existing_groups = get_idc_group(connection, module)
+    group_exists = get_idc_group(connection, module)
 
-    if existing_groups:
-        module.exit_json(changed=False, idc_group=display_name)
+    if group_exists:
+        if group_exists[0]['Description'] == description:
+            module.exit_json(changed=False, idc_group=display_name)
+        else:
+            update_group(connection, module)
     else:
         if description == None:
             response = connection.create_group(
@@ -106,6 +109,34 @@ def destroy_group(connection, module):
 
     if module.check_mode:
         module.exit_json(changed=True, idc_group=display_name)
+
+
+def update_group(connection, module):
+    display_name = module.params['name']
+    identity_store_id = module.params['identity_store_id']
+    description = module.params['description']
+
+    group = get_idc_group(connection, module)
+
+    response = connection.update_group(
+                   IdentityStoreId=identity_store_id,
+                   GroupId=group[0]['GroupId'],
+                   Operations=[
+                       {
+                           'AttributePath': 'Description',
+                           'AttributeValue': description
+                       }
+                   ]
+               )
+
+    if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+        module.exit_json(changed=True, idc_group=display_name)
+    else:
+        module.fail_json(msq="Error changing description.")
+
+    if module.check_mode:
+        module.exit_json(changed=True, idc_group=display_name)
+
 
 def get_idc_group(connection, module):
     display_name = module.params['name']
